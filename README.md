@@ -1,41 +1,46 @@
-# React ESI example
+# React ESI too large content are truncated 
 
-# Example app with prefetching pages
+### Why 
 
-## How to use
+Created with [create-next-app (React ESI Example)](https://github.com/vercel/next.js/tree/v9.2.2/examples/with-react-esi), this repository has been created to reproduce a [react-esi-issue](https://github.com/dunglas/react-esi/issues/20) where too large content are truncated.
 
-### Using `create-next-app`
+Compared to the initial directory all the code not necessary to reproduce this bug has been removed. 
 
-Execute [`create-next-app`](https://github.com/zeit/next.js/tree/canary/packages/create-next-app) with [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) or [npx](https://github.com/zkat/npx#readme) to bootstrap the example:
+The following dependencies have also been updated: 
+- node: v14
+- react: v17
+- express: v4.17.1
+- react-esi: v0.3.0
 
-```bash
-npx create-next-app --example with-react-esi with-react-esi-app
-# or
-yarn create next-app --example with-react-esi with-react-esi-app
+The BreakingNews component is called twice, once without the HOC withEsi and once with.
+It is called each time with 10k elements.
+
+### Run
+
+`docker-compose up`
+
+### Error thrown
+
+```
+node_1     | events.js:174
+node_1     |       throw er; // Unhandled 'error' event
+node_1     |       ^
+node_1     |
+node_1     | Error [ERR_STREAM_WRITE_AFTER_END]: write after end
+node_1     |     at write_ (_http_outgoing.js:584:17)
+node_1     |     at ServerResponse.write (_http_outgoing.js:579:10)
+node_1     |     at RemoveReactRoot.ondata (_stream_readable.js:693:20)
+node_1     |     at RemoveReactRoot.emit (events.js:189:13)
+node_1     |     at RemoveReactRoot.Readable.read (_stream_readable.js:491:10)
+node_1     |     at flow (_stream_readable.js:957:34)
+node_1     |     at ServerResponse.pipeOnDrainFunctionResult (_stream_readable.js:761:7)
+node_1     |     at ServerResponse.emit (events.js:189:13)
+node_1     |     at Socket.ondrain (internal/http.js:31:44)
+node_1     |     at Socket.emit (events.js:194:15)
+node_1     | Emitted 'error' event at:
+node_1     |     at writeAfterEndNT (_http_outgoing.js:646:7)
+node_1     |     at process.internalTickCallback (internal/process/next_tick.js:72:19)
+node_1     | error Command failed with exit code 1.
+node_1     | info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
 ```
 
-### Download manually
-
-Download the example:
-
-```bash
-curl https://codeload.github.com/zeit/next.js/tar.gz/canary | tar -xz --strip=2 next.js-canary/examples/with-react-esi
-cd with-react-esi
-```
-
-### Starting the Varnish cache server
-
-A Docker setup containing Varnish with [the appropriate config](docker/varnish/default.vcl) and Node is provided.
-Run the following command to start the project:
-
-```bash
-docker-compose up
-```
-
-## The idea behind the example
-
-React Server Side rendering is very costly and takes a lot of server's CPU power for that.
-One of the best solutions for this problem is cache fragments of rendered pages, each fragment corresponding to a component subtree.
-This example shows how to leverage [React ESI](https://github.com/dunglas/react-esi) and the Varnish HTTP accelerator to improve dramatically the performance of an app.
-
-The example (and the underlying lib) can work with any ESI implementation, including Akamai, Fastly and Cloudflare Workers.
